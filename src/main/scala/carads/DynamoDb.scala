@@ -9,22 +9,19 @@ import scala.collection.JavaConverters._
 
 trait DynamoDb extends Storage {
   val tableName: String
-  val client: AmazonDynamoDBAsyncClient
+  val client: AmazonDynamoDB
 
   def createTable: Unit = {
     client.createTable(
       new CreateTableRequest()
         .withTableName(tableName)
         .withKeySchema(List(new KeySchemaElement("id", "HASH")).asJava)
-        .withAttributeDefinitions(List(
-          new AttributeDefinition("id", "N"),
-          new AttributeDefinition("title", "S"),
-          new AttributeDefinition("fuel", "S"),
-          new AttributeDefinition("price", "N"),
-          new AttributeDefinition("new", "N"),
-          new AttributeDefinition("mileage", "N"),
-          new AttributeDefinition("registration", "S")
+        .withAttributeDefinitions(Seq(
+          new AttributeDefinition("id", "N")
         ).asJava)
+        .withProvisionedThroughput(
+          new ProvisionedThroughput(40000L, 40000L)
+        )
     )
   }
 
