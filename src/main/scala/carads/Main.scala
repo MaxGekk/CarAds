@@ -2,6 +2,7 @@ package carads
 
 import java.util.Date
 
+import carads.backend.{DynamoDb, Gasoline, Record}
 import com.amazonaws.auth.{AWSStaticCredentialsProvider, BasicAWSCredentials}
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.services.dynamodbv2._

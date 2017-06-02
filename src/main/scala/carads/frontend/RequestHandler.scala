@@ -1,7 +1,7 @@
-package carads
+package carads.frontend
 
-import org.json4s.{DefaultFormats, Formats, _}
-import spray.routing.{HttpServiceActor, _}
+import org.json4s.{DefaultFormats, Formats}
+import spray.routing.HttpServiceActor
 
 /** The actors receive Star API requests, handle them and send Star API responses or errors. */
 class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
