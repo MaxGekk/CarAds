@@ -72,9 +72,7 @@ trait DynamoDb extends Storage {
           new GetItemRequest().
             withTableName(tableName).
             withKey(
-              Map(
-                "id" -> new AttributeValue().withN(id.toString)
-              ).asJava
+              Map("id" -> new AttributeValue().withN(id.toString)).asJava
             )
         ).getItem
       }
@@ -84,5 +82,16 @@ trait DynamoDb extends Storage {
 
   def getAll: List[Record] = ???
   def modify(record: Record): Unit = ???
-  def delete(id: Int) = ???
+  def delete(id: Int): Try[Record] = {
+    Try {
+      client.deleteItem(
+        new DeleteItemRequest().
+          withTableName(tableName).
+          withKey(
+            Map("id" -> new AttributeValue().withN(id.toString)).asJava
+          ).
+          withReturnValues("ALL_OLD")
+      ).getAttributes.asScala
+    } flatMap(item2Record)
+  }
 }

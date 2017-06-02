@@ -21,5 +21,5 @@ trait Storage {
   def get(id: Int): Try[Record]
   def put(record: Record): Try[Record]
   def modify(record: Record): Unit
-  def delete(id: Int)
+  def delete(id: Int): Try[Record]
 }
