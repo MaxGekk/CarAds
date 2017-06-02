@@ -15,11 +15,11 @@ case class Diesel() extends Fuel {
 case class Record(id: Int, title: String, fuel: Fuel, price: Int, `new`: Boolean,
                  mileage: Option[Int], registration: Option[Date])
 trait Storage {
-  def createTable: Unit
+  def createTable: Try[String]
 
   def getAll: List[Record]
   def get(id: Int): Try[Record]
-  def put(record: Record): Unit
+  def put(record: Record): Try[Record]
   def modify(record: Record): Unit
   def delete(id: Int)
 }

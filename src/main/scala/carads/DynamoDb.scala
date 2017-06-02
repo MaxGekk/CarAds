@@ -1,11 +1,8 @@
 package carads
 
-import java.text.{DateFormat, SimpleDateFormat}
 import java.util.Date
-
 import com.amazonaws.services.dynamodbv2._
 import com.amazonaws.services.dynamodbv2.model._
-
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.Try
@@ -14,8 +11,8 @@ trait DynamoDb extends Storage {
   val tableName: String
   val client: AmazonDynamoDB
 
-  def createTable: Unit = {
-    client.createTable(
+  def createTable: Try[String] = {
+    Try {client.createTable(
       new CreateTableRequest()
         .withTableName(tableName)
         .withKeySchema(List(new KeySchemaElement("id", "HASH")).asJava)
@@ -25,11 +22,11 @@ trait DynamoDb extends Storage {
         .withProvisionedThroughput(
           new ProvisionedThroughput(40000L, 40000L)
         )
-    )
+    )} map (_.getTableDescription.getTableStatus)
   }
 
-  def put(record: Record): Unit = {
-    client.putItem(
+  def put(record: Record): Try[Record] = {
+    Try {client.putItem(
       new PutItemRequest().
         withTableName(tableName).
         withItem(
@@ -45,7 +42,9 @@ trait DynamoDb extends Storage {
             )
           ).asJava
         )
-    )
+        .withReturnValues("ALL_OLD")
+      ).getAttributes.asScala
+    } flatMap(item2Record)
   }
 
   def item2Record(item: mutable.Map[String, AttributeValue]): Try[Record] = {
@@ -67,17 +66,20 @@ trait DynamoDb extends Storage {
   }
 
   def get(id: Int): Try[Record] = {
-    val item = client.getItem(
-      new GetItemRequest().
-        withTableName(tableName).
-        withKey(
-          Map(
-            "id" -> new AttributeValue().withN(id.toString)
-          ).asJava
-        )
-    ).getItem
-
-    item2Record(item.asScala)
+    for {
+      item <- Try {
+        client.getItem(
+          new GetItemRequest().
+            withTableName(tableName).
+            withKey(
+              Map(
+                "id" -> new AttributeValue().withN(id.toString)
+              ).asJava
+            )
+        ).getItem
+      }
+      record <- item2Record(item.asScala)
+    } yield record
   }
 
   def getAll: List[Record] = ???
