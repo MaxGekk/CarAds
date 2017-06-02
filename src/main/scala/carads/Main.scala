@@ -28,7 +28,14 @@ object Main {
         println(s"Exception: ${exp.toString}")
         exp.printStackTrace()
       case Right(rec) => println(s"put = $orig get = ${rec}")
+    }
 
+    storage.modify(orig.copy(title = "BMW"), Set("title"))
+    storage.get(1).toEither match {
+      case Left(exp) =>
+        println(s"Exception: ${exp.toString}")
+        exp.printStackTrace()
+      case Right(rec) => println(s"put = $orig get = ${rec}")
     }
   }
 }

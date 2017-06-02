@@ -20,6 +20,6 @@ trait Storage {
   def getAll: List[Record]
   def get(id: Int): Try[Record]
   def put(record: Record): Try[Record]
-  def modify(record: Record): Unit
+  def modify(record: Record, attrs: Set[String]): Try[Record]
   def delete(id: Int): Try[Record]
 }

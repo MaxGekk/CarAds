@@ -42,7 +42,7 @@ trait DynamoDb extends Storage {
             )
           ).asJava
         )
-        .withReturnValues("ALL_OLD")
+        .withReturnValues(ReturnValue.ALL_OLD)
       ).getAttributes.asScala
     } flatMap(item2Record)
   }
@@ -80,8 +80,6 @@ trait DynamoDb extends Storage {
     } yield record
   }
 
-  def getAll: List[Record] = ???
-  def modify(record: Record): Unit = ???
   def delete(id: Int): Try[Record] = {
     Try {
       client.deleteItem(
@@ -90,8 +88,37 @@ trait DynamoDb extends Storage {
           withKey(
             Map("id" -> new AttributeValue().withN(id.toString)).asJava
           ).
-          withReturnValues("ALL_OLD")
+          withReturnValues(ReturnValue.ALL_OLD)
       ).getAttributes.asScala
     } flatMap(item2Record)
   }
+
+  def modify(record: Record, attrs: Set[String]): Try[Record] = {
+    val tryUpdate = Try {attrs.map( attr => attr -> new AttributeValueUpdate().withValue(
+      attr match {
+        case "title" => new AttributeValue().withS(record.title)
+        case "fuel" => new AttributeValue().withS(record.fuel.toString)
+        case "price" => new AttributeValue().withN(record.price.toString)
+        case "new" => new AttributeValue().withS(record.`new`.toString)
+        case "mileage" => new AttributeValue().withN(record.mileage.getOrElse(0).toString)
+        case "registration" => new AttributeValue().withN(
+          record.registration.getOrElse(new Date(0)).getTime.toString
+        )
+      }
+    )).toMap.asJava}
+
+    val item = for { update <- tryUpdate } yield client.updateItem(
+      new UpdateItemRequest().
+        withTableName(tableName).
+        withKey(
+          Map("id" -> new AttributeValue().withN(record.id.toString)).asJava
+        ).
+        withAttributeUpdates(update).
+        withReturnValues(ReturnValue.ALL_OLD)
+    ).getAttributes.asScala
+
+    item flatMap(item2Record)
+  }
+
+  def getAll: List[Record] = ???
 }
