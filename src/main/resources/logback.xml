@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d %-5level %logger{5} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ASYNC1" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>500</queueSize>
+        <appender-ref ref="STDOUT"/>
+    </appender>
+
+    <root level="ERROR">
+        <appender-ref ref="ASYNC1"/>
+    </root>
+</configuration>
+

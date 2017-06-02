@@ -6,6 +6,8 @@ import com.amazonaws.auth.{AWSStaticCredentialsProvider, BasicAWSCredentials}
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
 import com.amazonaws.services.dynamodbv2._
 
+import scala.util.{Failure, Success}
+
 object Main {
   def main(args: Array[String]): Unit = {
     val storage = new DynamoDb {
@@ -23,19 +25,19 @@ object Main {
     val orig = Record(1, "Audi A4 Avant", Gasoline(), 30000, false,
       Some(100000), Some(new Date()))
     storage.put(orig)
-    storage.get(1).toEither match {
-      case Left(exp) =>
+    storage.get(1) match {
+      case Failure(exp) =>
         println(s"Exception: ${exp.toString}")
         exp.printStackTrace()
-      case Right(rec) => println(s"put = $orig get = ${rec}")
+      case Success(rec) => println(s"put = $orig get = ${rec}")
     }
 
     storage.modify(orig.copy(title = "BMW"), Set("title"))
-    storage.get(1).toEither match {
-      case Left(exp) =>
+    storage.get(1) match {
+      case Failure(exp) =>
         println(s"Exception: ${exp.toString}")
         exp.printStackTrace()
-      case Right(rec) => println(s"put = $orig get = ${rec}")
+      case Success(rec) => println(s"put = $orig get = ${rec}")
     }
     storage.getAll(1000) foreach println
   }
