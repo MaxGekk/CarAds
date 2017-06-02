@@ -37,5 +37,6 @@ object Main {
         exp.printStackTrace()
       case Right(rec) => println(s"put = $orig get = ${rec}")
     }
+    storage.getAll(1000) foreach println
   }
 }

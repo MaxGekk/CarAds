@@ -17,7 +17,7 @@ case class Record(id: Int, title: String, fuel: Fuel, price: Int, `new`: Boolean
 trait Storage {
   def createTable: Try[String]
 
-  def getAll: List[Record]
+  def getAll(limit: Int): List[Record]
   def get(id: Int): Try[Record]
   def put(record: Record): Try[Record]
   def modify(record: Record, attrs: Set[String]): Try[Record]
