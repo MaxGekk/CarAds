@@ -2,6 +2,8 @@ package carads
 
 import java.util.Date
 
+import scala.util.Try
+
 sealed trait Fuel
 case class Gasoline() extends Fuel {
   override def toString: String = "Gasoline"
@@ -16,7 +18,7 @@ trait Storage {
   def createTable: Unit
 
   def getAll: List[Record]
-  def get(id: Int): Option[Record]
+  def get(id: Int): Try[Record]
   def put(record: Record): Unit
   def modify(record: Record): Unit
   def delete(id: Int)

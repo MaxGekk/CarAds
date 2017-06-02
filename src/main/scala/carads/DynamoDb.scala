@@ -1,11 +1,14 @@
 package carads
 
+import java.text.{DateFormat, SimpleDateFormat}
 import java.util.Date
 
 import com.amazonaws.services.dynamodbv2._
 import com.amazonaws.services.dynamodbv2.model._
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.util.Try
 
 trait DynamoDb extends Storage {
   val tableName: String
@@ -37,14 +40,34 @@ trait DynamoDb extends Storage {
             "price" -> new AttributeValue().withN(record.price.toString),
             "new" -> new AttributeValue().withS(record.`new`.toString),
             "mileage" -> new AttributeValue().withN(record.mileage.getOrElse(0).toString),
-            "registration" -> new AttributeValue().withS(record.registration.getOrElse(new Date(0)).toString)
+            "registration" -> new AttributeValue().withN(
+              record.registration.getOrElse(new Date(0)).getTime.toString
+            )
           ).asJava
         )
     )
   }
 
-  def get(id: Int): Option[Record] = {
-    val attrs = client.getItem(
+  def item2Record(item: mutable.Map[String, AttributeValue]): Try[Record] = {
+    val rec = for {
+      id <- Try { item("id").getN.toInt }
+      title <- Try { item("title").getS }
+      fuel <- Try { item("fuel").getS match {
+        case "Gasoline" => Gasoline()
+        case "Diesel" => Diesel()
+        case unknown => throw new IllegalArgumentException(s"unknown fuel: $unknown")
+      }}
+      price <- Try { item("price").getN.toInt }
+      isNew <- Try { item("new").getS.toBoolean }
+      mileage <- Try { if (isNew) None else Some(item("mileage").getN.toInt) }
+      registration <- Try { if (isNew) None else Some(new Date(item("registration").getN.toLong))}
+    } yield Record(id, title, fuel, price, isNew, mileage, registration)
+
+    rec
+  }
+
+  def get(id: Int): Try[Record] = {
+    val item = client.getItem(
       new GetItemRequest().
         withTableName(tableName).
         withKey(
@@ -54,15 +77,7 @@ trait DynamoDb extends Storage {
         )
     ).getItem
 
-    Some(Record(
-      id = attrs.get("id").getN.toInt,
-      title = attrs.get("title").getS,
-      fuel = Gasoline(),
-      price = attrs.get("price").getN.toInt,
-      `new` = false,
-      mileage = None,
-      registration = None
-    ))
+    item2Record(item.asScala)
   }
 
   def getAll: List[Record] = ???
