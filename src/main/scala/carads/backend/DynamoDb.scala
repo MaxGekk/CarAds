@@ -27,7 +27,7 @@ trait DynamoDb extends Storage {
     )} map (_.getTableDescription.getTableStatus)
   }
 
-  def put(record: Record): Try[Record] = {
+  def put(record: Record): Try[Unit] = {
     Try {client.putItem(
       new PutItemRequest().
         withTableName(tableName).
@@ -44,9 +44,10 @@ trait DynamoDb extends Storage {
             )
           ).asJava
         )
-        .withReturnValues(ReturnValue.ALL_OLD)
-      ).getAttributes.asScala
-    } flatMap(item2Record)
+        .withReturnValues(ReturnValue.NONE)
+      )
+      ()
+    }
   }
 
   def item2Record(item: mutable.Map[String, AttributeValue]): Try[Record] = {
@@ -82,7 +83,7 @@ trait DynamoDb extends Storage {
     } yield record
   }
 
-  def delete(id: Int): Try[Record] = {
+  def delete(id: Int): Try[Unit] = {
     Try {
       client.deleteItem(
         new DeleteItemRequest().
@@ -90,12 +91,13 @@ trait DynamoDb extends Storage {
           withKey(
             Map("id" -> new AttributeValue().withN(id.toString)).asJava
           ).
-          withReturnValues(ReturnValue.ALL_OLD)
-      ).getAttributes.asScala
-    } flatMap(item2Record)
+          withReturnValues(ReturnValue.NONE)
+      )
+      ()
+    }
   }
 
-  def modify(record: Record, attrs: Set[String]): Try[Record] = {
+  def modify(record: Record, attrs: Set[String]): Try[Unit] = {
     val tryUpdate = Try {attrs.map( attr => attr -> new AttributeValueUpdate().withValue(
       attr match {
         case "title" => new AttributeValue().withS(record.title)
@@ -116,10 +118,10 @@ trait DynamoDb extends Storage {
           Map("id" -> new AttributeValue().withN(record.id.toString)).asJava
         ).
         withAttributeUpdates(update).
-        withReturnValues(ReturnValue.ALL_OLD)
-    ).getAttributes.asScala
+        withReturnValues(ReturnValue.NONE)
+    )
 
-    item flatMap(item2Record)
+    item map (_ => ())
   }
 
   def getAll(limit: Int): Try[List[Record]] = {

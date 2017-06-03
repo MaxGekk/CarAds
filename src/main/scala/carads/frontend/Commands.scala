@@ -35,8 +35,7 @@ case class PutReq(
 
 case class PutResp(
                     isSuccess: Boolean,
-                    error: Option[String],
-                    old: Option[Record]
+                    error: Option[String]
                   )
 
 case class GetReq(id: Int) { var jsonReq: String = "Unknown" }
@@ -49,8 +48,7 @@ case class GetResp(
 case class DelReq(id: Int) { var jsonReq: String = "Unknown" }
 case class DelResp(
                     isSuccess: Boolean,
-                    error: Option[String],
-                    old: Option[Record]
+                    error: Option[String]
                   )
 
 case class GetAllReq(limit: Int) { var jsonReq: String = "Unknown" }
@@ -107,6 +105,5 @@ case class ModifyReq(
 }
 case class ModifyResp(
                     isSuccess: Boolean,
-                    error: Option[String],
-                    old: Option[Record]
+                    error: Option[String]
                   )

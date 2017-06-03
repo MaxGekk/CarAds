@@ -27,21 +27,21 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
     } yield response
 
     result match {
-      case Success(old) =>
-        ctx.complete(PutResp(isSuccess = true, old = Some(old), error = None))
+      case Success(_) =>
+        ctx.complete(PutResp(isSuccess = true, error = None))
       case Failure(exception) =>
         logException(exception, putReq.jsonReq)
-        ctx.complete(PutResp(isSuccess = false, error = Some(exception.getMessage), old = None))
+        ctx.complete(PutResp(isSuccess = false, error = Some(exception.getMessage)))
     }
   }
 
   override def handleDel(ctx: RequestContext, delReq: DelReq): Unit = {
     settings.storage.delete(delReq.id) match {
-      case Success(rec) =>
-        ctx.complete(DelResp(isSuccess = true, old = Some(rec), error = None))
+      case Success(_) =>
+        ctx.complete(DelResp(isSuccess = true, error = None))
       case Failure(exception) =>
         logException(exception, delReq.jsonReq)
-        ctx.complete(DelResp(isSuccess = false, error = Some(exception.getMessage), old = None))
+        ctx.complete(DelResp(isSuccess = false, error = Some(exception.getMessage)))
     }
   }
 
@@ -62,11 +62,11 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
     } yield response
 
     result match {
-      case Success(old) =>
-        ctx.complete(ModifyResp(isSuccess = true, old = Some(old), error = None))
+      case Success(_) =>
+        ctx.complete(ModifyResp(isSuccess = true, error = None))
       case Failure(exception) =>
         logException(exception, modifyReq.jsonReq)
-        ctx.complete(ModifyResp(isSuccess = false, error = Some(exception.getMessage), old = None))
+        ctx.complete(ModifyResp(isSuccess = false, error = Some(exception.getMessage)))
     }
   }
 
