@@ -15,7 +15,7 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
       case Success(rec) =>
         ctx.complete(GetResp(isSuccess = true, record = Some(rec), error = None))
       case Failure(exception) =>
-        logException(exception)
+        logException(exception, getReq.jsonReq)
         ctx.complete(GetResp(isSuccess = false, error = Some(exception.getMessage), record = None))
     }
   }
@@ -30,15 +30,27 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
       case Success(old) =>
         ctx.complete(PutResp(isSuccess = true, old = Some(old), error = None))
       case Failure(exception) =>
-        logException(exception)
+        logException(exception, putReq.jsonReq)
         ctx.complete(PutResp(isSuccess = false, error = Some(exception.getMessage), old = None))
     }
   }
 
-  def logException(exception: Throwable) = {
+  override def handleDel(ctx: RequestContext, delReq: DelReq): Unit = {
+    settings.storage.delete(delReq.id) match {
+      case Success(rec) =>
+        ctx.complete(DelResp(isSuccess = true, old = Some(rec), error = None))
+      case Failure(exception) =>
+        logException(exception, delReq.jsonReq)
+        ctx.complete(DelResp(isSuccess = false, error = Some(exception.getMessage), old = None))
+    }
+  }
+
+  def logException(exception: Throwable, jsonReq: String) = {
     val stackTrace = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(exception)
     log.error(
       s"""Failed due to: ${exception.getMessage}:
+         | === JSON Request ===
+         | $jsonReq
          | === Stack trace ===
          | $stackTrace
          |""".stripMargin)
