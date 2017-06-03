@@ -55,6 +55,21 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
     }
   }
 
+  override def handleModify(ctx: RequestContext, modifyReq: ModifyReq): Unit = {
+    val result = for {
+      (record, attrs) <- modifyReq.record
+      response <- settings.storage.modify(record, attrs)
+    } yield response
+
+    result match {
+      case Success(old) =>
+        ctx.complete(ModifyResp(isSuccess = true, old = Some(old), error = None))
+      case Failure(exception) =>
+        logException(exception, modifyReq.jsonReq)
+        ctx.complete(ModifyResp(isSuccess = false, error = Some(exception.getMessage), old = None))
+    }
+  }
+
   def logException(exception: Throwable, jsonReq: String) = {
     val stackTrace = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(exception)
     log.error(

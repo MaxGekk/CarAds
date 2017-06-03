@@ -1,8 +1,11 @@
 package carads.frontend
 
 import java.text.SimpleDateFormat
+
 import carads.backend.{Diesel, Gasoline, Record}
-import scala.util.Try
+
+import scala.collection.mutable
+import scala.util.{Success, Try}
 
 case class PutReq(
                 id: Int,
@@ -55,4 +58,55 @@ case class GetAllResp(
                     isSuccess: Boolean,
                     error: Option[String],
                     records: List[Record]
+                  )
+
+case class ModifyReq(
+                   id: Int,
+                   title: Option[String],
+                   fuel: Option[String],
+                   price: Option[Int],
+                   `new`: Option[Boolean],
+                   mileage: Option[Int],
+                   registration: Option[String]
+                 ) {
+  var jsonReq: String = "Unknown"
+  def record: Try[(Record, Set[String])] = {
+    Try {
+      var rec = Record(id, "", Gasoline(), 0, true, None, None)
+      var attrs = mutable.Set[String]()
+      if (title.isDefined) {
+         attrs += "title"
+         rec = rec.copy(title = title.get)
+      }
+      if (fuel.isDefined) {
+        attrs += "fuel"
+        fuel.get match {
+          case "Gasoline" => rec = rec.copy(fuel = Gasoline())
+          case "Diesel" => rec = rec.copy(fuel = Diesel())
+        }
+      }
+      if (price.isDefined) {
+        attrs += "price"
+        rec = rec.copy(price = price.get)
+      }
+      if (`new`.isDefined) {
+        attrs += "new"
+        rec = rec.copy(`new` = `new`.get)
+      }
+      if (mileage.isDefined) {
+        attrs += "mileage"
+        rec = rec.copy(mileage = mileage)
+      }
+      if (registration.isDefined) {
+        attrs += "registration"
+        rec = rec.copy(registration = Some(new SimpleDateFormat("yyyy.MM.dd").parse(registration.get)))
+      }
+      (rec, attrs.toSet)
+    }
+  }
+}
+case class ModifyResp(
+                    isSuccess: Boolean,
+                    error: Option[String],
+                    old: Option[Record]
                   )

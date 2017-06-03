@@ -7,7 +7,6 @@ import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
 import org.slf4j.LoggerFactory
 import spray.can.Http
-
 import scala.concurrent.duration._
 import concurrent.{Await, Future}
 import akka.actor.SupervisorStrategy.Restart
