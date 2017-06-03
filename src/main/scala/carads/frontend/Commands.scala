@@ -49,3 +49,10 @@ case class DelResp(
                     error: Option[String],
                     old: Option[Record]
                   )
+
+case class GetAllReq(limit: Int) { var jsonReq: String = "Unknown" }
+case class GetAllResp(
+                    isSuccess: Boolean,
+                    error: Option[String],
+                    records: List[Record]
+                  )

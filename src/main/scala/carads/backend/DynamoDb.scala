@@ -122,7 +122,7 @@ trait DynamoDb extends Storage {
     item flatMap(item2Record)
   }
 
-  def getAll(limit: Int): List[Record] = {
+  def getAll(limit: Int): Try[List[Record]] = {
     val items = Try {
       client.scan(
         new ScanRequest().
@@ -130,8 +130,8 @@ trait DynamoDb extends Storage {
           withLimit(limit).
           withSelect("ALL_ATTRIBUTES")
       ).getItems.asScala.toList
-    }.getOrElse(List())
+    }
 
-    items.flatMap(item => item2Record(item.asScala).toOption)
+    items.map(_.flatMap(item => item2Record(item.asScala).toOption))
   }
 }

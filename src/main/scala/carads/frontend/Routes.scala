@@ -10,6 +10,7 @@ trait Routes extends HttpService with Json4sJacksonSupport with Logging {
   def handlePut(ctx: RequestContext, request: PutReq): Unit
   def handleGet(ctx: RequestContext, putReq: GetReq): Unit
   def handleDel(ctx: RequestContext, delReq: DelReq): Unit
+  def handleGetAll(ctx: RequestContext, getAllReq: GetAllReq): Unit
 
   override implicit def json4sJacksonFormats: Formats = DefaultFormats.withBigDecimal
 
@@ -62,6 +63,18 @@ trait Routes extends HttpService with Json4sJacksonSupport with Logging {
             log.info(s"Serving get path: $jsonReq")
             delReq.jsonReq = jsonReq
             ctx => handleDel(ctx, delReq)
+          }
+        }
+      }
+    }
+  } ~ path("all") {
+    rawJson { jsonReq =>
+      post {
+        respondWithXPowerByHeader {
+          entity(as[GetAllReq]) { getAllReq =>
+            log.info(s"Serving get path: $jsonReq")
+            getAllReq.jsonReq = jsonReq
+            ctx => handleGetAll(ctx, getAllReq)
           }
         }
       }

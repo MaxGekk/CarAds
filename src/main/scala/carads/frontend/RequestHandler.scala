@@ -45,6 +45,16 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
     }
   }
 
+  override def handleGetAll(ctx: RequestContext, getAllReq: GetAllReq): Unit = {
+    settings.storage.getAll(getAllReq.limit) match {
+      case Success(records) =>
+        ctx.complete(GetAllResp(isSuccess = true, records = records, error = None))
+      case Failure(exception) =>
+        logException(exception, getAllReq.jsonReq)
+        ctx.complete(GetAllResp(isSuccess = false, error = Some(exception.getMessage), records = List()))
+    }
+  }
+
   def logException(exception: Throwable, jsonReq: String) = {
     val stackTrace = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(exception)
     log.error(
