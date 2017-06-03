@@ -1,13 +1,10 @@
 package carads.frontend
 
 import java.text.SimpleDateFormat
-import java.util.Date
-
 import carads.backend.{Diesel, Gasoline, Record}
-
 import scala.util.Try
 
-case class Put(
+case class PutReq(
                 id: Int,
                 title: String,
                 fuel: String,
@@ -32,3 +29,5 @@ case class Put(
     result
   }
 }
+
+case class PutResp(isSuccess: Boolean, error: Option[String])

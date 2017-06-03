@@ -11,17 +11,17 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
   override implicit def json4sJacksonFormats: Formats = DefaultFormats.withBigDecimal
   override val receive = runRoute(routes)
 
-  override def handlePut(ctx: RequestContext, putReq: Put): Unit = {
+  override def handlePut(ctx: RequestContext, putReq: PutReq): Unit = {
     val result = for {
       record <- putReq.record
       response <- settings.storage.put(record)
     } yield response
 
     result match {
-      case Success(response) =>  ctx.complete("OK")
+      case Success(_) =>  ctx.complete(PutResp(isSuccess = true, error = None))
       case Failure(exception) =>
         logException(exception)
-        ctx.complete(exception.getMessage)
+        ctx.complete(PutResp(isSuccess = false, error = Some(exception.getMessage)))
     }
   }
 

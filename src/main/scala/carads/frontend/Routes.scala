@@ -7,7 +7,7 @@ import spray.httpx.Json4sJacksonSupport
 import spray.routing.{HttpService, RequestContext, Route}
 
 trait Routes extends HttpService with Json4sJacksonSupport with Logging {
-  def handlePut(ctx: RequestContext, request: Put): Unit
+  def handlePut(ctx: RequestContext, request: PutReq): Unit
 
   override implicit def json4sJacksonFormats: Formats = DefaultFormats.withBigDecimal
 
@@ -31,7 +31,7 @@ trait Routes extends HttpService with Json4sJacksonSupport with Logging {
       rawJson { jsonReq =>
         post {
           respondWithXPowerByHeader {
-            entity(as[Put]) { putReq =>
+            entity(as[PutReq]) { putReq =>
               log.info(s"Serving query path: $jsonReq")
               putReq.jsonReq = jsonReq
               ctx => handlePut(ctx, putReq)
