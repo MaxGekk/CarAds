@@ -68,6 +68,7 @@ object Service {
           config.getString("amazon.dynamodb.region")
         )).
         build()
+      createTable
     }
     Settings(storage)
   }
