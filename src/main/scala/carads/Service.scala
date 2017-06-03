@@ -19,24 +19,10 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class Service(config: Config) extends Logging {
+class Service(config: Config, settings: Settings) extends Logging {
   val WORKERS_AMOUNT = config.getInt("common.workers-amount")
   val BIND_TIMEOUT = 1 minute
   var actualPort: Option[Int] = None
-
-  def configure: Settings = {
-    val storage = new DynamoDb {
-      val tableName = "carads"
-      val credentials = new BasicAWSCredentials("Fake", "Fake");
-      val client = AmazonDynamoDBClientBuilder.standard().
-        withCredentials(new AWSStaticCredentialsProvider(credentials)).
-        withEndpointConfiguration(new EndpointConfiguration(
-          "http://localhost:8000", "local")
-        ).
-        build()
-    }
-    Settings(storage)
-  }
 
   def start(): ActorSystem = {
     implicit val system = ActorSystem("CarAds")
@@ -45,7 +31,7 @@ class Service(config: Config) extends Logging {
       props = SmallestMailboxPool(WORKERS_AMOUNT).
         withSupervisorStrategy(OneForOneStrategy(-1, Duration.Inf) { case _ => Restart }).
         withResizer(DefaultResizer(lowerBound = WORKERS_AMOUNT, upperBound = 2 * WORKERS_AMOUNT)).
-        props(Props(classOf[RequestHandler], configure)),
+        props(Props(classOf[RequestHandler], settings)),
       name = "request-handler"
     )
 
@@ -69,8 +55,26 @@ class Service(config: Config) extends Logging {
 }
 
 object Service {
+  def configure(config: Config): Settings = {
+    val storage = new DynamoDb {
+      val tableName = config.getString("amazon.dynamodb.table")
+      val credentials = new BasicAWSCredentials(
+        config.getString("amazon.access-key"), config.getString("amazon.secret-key")
+      );
+      val client = AmazonDynamoDBClientBuilder.standard().
+        withCredentials(new AWSStaticCredentialsProvider(credentials)).
+        withEndpointConfiguration(new EndpointConfiguration(
+          config.getString("amazon.dynamodb.url"),
+          config.getString("amazon.dynamodb.region")
+        )).
+        build()
+    }
+    Settings(storage)
+  }
+
   def main(args: Array[String]): Unit = try {
-    val service = new Service(ConfigFactory.load)
+    val config = ConfigFactory.load
+    val service = new Service(config, configure(config))
     val system = service.start()
     sys.addShutdownHook(service.shutdown(system))
   } catch {
