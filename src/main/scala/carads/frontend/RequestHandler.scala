@@ -49,9 +49,12 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
   }
 
   override def handleGetAll(ctx: RequestContext, getAllReq: GetAllReq): Unit = {
-    settings.storage.getAll(getAllReq.limit).map(Record.sort(_, getAllReq.sortby))  match {
+    settings.storage.
+        getAll(getAllReq.limit).
+        map(Record.sort(_, getAllReq.sortby)).
+        map(_.map(Resp.convRec)) match {
       case Success(records) =>
-        ctx.complete(GetAllResp(isSuccess = true, records = records.map(Resp.convRec), error = None))
+        ctx.complete(GetAllResp(isSuccess = true, records = records, error = None))
       case Failure(exception) =>
         logException(exception, getAllReq.jsonReq)
         ctx.complete(GetAllResp(isSuccess = false, error = Some(exception.getMessage), records = List()))
