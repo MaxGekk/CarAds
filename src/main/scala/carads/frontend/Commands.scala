@@ -30,4 +30,15 @@ case class PutReq(
   }
 }
 
-case class PutResp(isSuccess: Boolean, error: Option[String])
+case class PutResp(
+                    isSuccess: Boolean,
+                    error: Option[String],
+                    old: Option[Record]
+                  )
+
+case class GetReq(id: Int) { var jsonReq: String = "Unknown" }
+case class GetResp(
+                  isSuccess: Boolean,
+                  error: Option[String],
+                  record: Option[Record]
+                  )

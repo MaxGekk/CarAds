@@ -11,6 +11,16 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
   override implicit def json4sJacksonFormats: Formats = DefaultFormats.withBigDecimal
   override val receive = runRoute(routes)
 
+  override def handleGet(ctx: RequestContext, getReq: GetReq): Unit = {
+    settings.storage.get(getReq.id) match {
+      case Success(rec) =>
+        ctx.complete(GetResp(isSuccess = true, record = Some(rec), error = None))
+      case Failure(exception) =>
+        logException(exception)
+        ctx.complete(GetResp(isSuccess = false, error = Some(exception.getMessage), record = None))
+    }
+  }
+
   override def handlePut(ctx: RequestContext, putReq: PutReq): Unit = {
     val result = for {
       record <- putReq.record
@@ -18,10 +28,11 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
     } yield response
 
     result match {
-      case Success(_) =>  ctx.complete(PutResp(isSuccess = true, error = None))
+      case Success(old) =>
+        ctx.complete(PutResp(isSuccess = true, old = Some(old), error = None))
       case Failure(exception) =>
         logException(exception)
-        ctx.complete(PutResp(isSuccess = false, error = Some(exception.getMessage)))
+        ctx.complete(PutResp(isSuccess = false, error = Some(exception.getMessage), old = None))
     }
   }
 
