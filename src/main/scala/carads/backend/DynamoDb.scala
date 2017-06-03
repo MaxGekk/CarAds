@@ -1,5 +1,6 @@
 package carads.backend
 
+import java.text.SimpleDateFormat
 import java.util.Date
 
 import com.amazonaws.services.dynamodbv2._
@@ -39,9 +40,10 @@ trait DynamoDb extends Storage {
             "price" -> new AttributeValue().withN(record.price.toString),
             "new" -> new AttributeValue().withS(record.`new`.toString),
             "mileage" -> new AttributeValue().withN(record.mileage.getOrElse(0).toString),
-            "registration" -> new AttributeValue().withN(
-              record.registration.getOrElse(new Date(0)).getTime.toString
-            )
+            "registration" -> new AttributeValue().withS ({
+              val date = record.registration.getOrElse(new Date(0))
+              Storage.date2Str(date)
+            })
           ).asJava
         )
         .withReturnValues(ReturnValue.NONE)
@@ -62,7 +64,14 @@ trait DynamoDb extends Storage {
       price <- Try { item("price").getN.toInt }
       isNew <- Try { item("new").getS.toBoolean }
       mileage <- Try { if (isNew) None else Some(item("mileage").getN.toInt) }
-      registration <- Try { if (isNew) None else Some(new Date(item("registration").getN.toLong))}
+      registration <- Try {
+        if (isNew)
+          None
+        else {
+          val s = item("registration").getS
+          Some(Storage.str2Date(s))
+        }
+      }
     } yield Record(id, title, fuel, price, isNew, mileage, registration)
 
     rec
@@ -105,8 +114,8 @@ trait DynamoDb extends Storage {
         case "price" => new AttributeValue().withN(record.price.toString)
         case "new" => new AttributeValue().withS(record.`new`.toString)
         case "mileage" => new AttributeValue().withN(record.mileage.getOrElse(0).toString)
-        case "registration" => new AttributeValue().withN(
-          record.registration.getOrElse(new Date(0)).getTime.toString
+        case "registration" => new AttributeValue().withS(
+          Storage.date2Str(record.registration.getOrElse(new Date(0)))
         )
       }
     )).toMap.asJava}

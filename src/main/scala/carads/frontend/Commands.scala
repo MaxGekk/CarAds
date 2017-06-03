@@ -1,6 +1,7 @@
 package carads.frontend
 
 import java.text.SimpleDateFormat
+import java.util.Date
 
 import carads.backend.{Diesel, Gasoline, Record}
 
@@ -24,9 +25,10 @@ case class PutReq(
         case "Diesel" => Diesel()
         case unknown => throw new IllegalArgumentException(s"unknown fuel: $unknown")
       }}
-      parsedReg = registration.map(date =>
-        Try { new SimpleDateFormat("yyyy.MM.dd").parse(date)}.toOption
-      ).flatten
+      parsedReg <- Try { registration match {
+        case Some(str) => Some(Req.str2Date(str))
+        case None => None
+      }}
     } yield Record(id, title, parsedFuel, price, `new`, mileage, parsedReg)
 
     result
@@ -97,7 +99,7 @@ case class ModifyReq(
       }
       if (registration.isDefined) {
         attrs += "registration"
-        rec = rec.copy(registration = Some(new SimpleDateFormat("yyyy.MM.dd").parse(registration.get)))
+        rec = rec.copy(registration = Some(Req.str2Date(registration.get)))
       }
       (rec, attrs.toSet)
     }
@@ -107,3 +109,10 @@ case class ModifyResp(
                     isSuccess: Boolean,
                     error: Option[String]
                   )
+
+object Req {
+  val pattern = new SimpleDateFormat("yyyy-MM-dd")
+  def str2Date(str: String): Date = {
+    pattern.parse(str)
+  }
+}
