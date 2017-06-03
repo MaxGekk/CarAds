@@ -2,7 +2,6 @@ package carads.backend
 
 import java.text.SimpleDateFormat
 import java.util.Date
-
 import scala.util.Try
 
 trait Storage {

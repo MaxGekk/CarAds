@@ -1,11 +1,8 @@
 package carads.backend
 
-import java.text.SimpleDateFormat
 import java.util.Date
-
 import com.amazonaws.services.dynamodbv2._
 import com.amazonaws.services.dynamodbv2.model._
-
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.Try
