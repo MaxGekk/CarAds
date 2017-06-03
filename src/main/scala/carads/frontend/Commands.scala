@@ -60,7 +60,7 @@ case class DelResp(
                     error: Option[String]
                   )
 
-case class GetAllReq(limit: Int) { var jsonReq: String = "Unknown" }
+case class GetAllReq(limit: Int, sortby: Option[String]) { var jsonReq: String = "Unknown" }
 case class GetAllResp(
                     isSuccess: Boolean,
                     error: Option[String],

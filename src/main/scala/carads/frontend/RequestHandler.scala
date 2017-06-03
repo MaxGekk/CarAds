@@ -1,12 +1,15 @@
 package carads.frontend
 
-import carads.backend.Storage
+import carads.backend.{Record, Storage}
 import org.json4s.{DefaultFormats, Formats}
 import spray.routing.{HttpServiceActor, RequestContext}
+
 import scala.util.{Failure, Success}
 
 /** The actors receive CarAds API requests, handle them and send CarAds API responses or errors. */
 class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
+  import RequestHandler.logException
+
   override implicit def json4sJacksonFormats: Formats = DefaultFormats.withBigDecimal
   override val receive = runRoute(routes)
 
@@ -46,7 +49,7 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
   }
 
   override def handleGetAll(ctx: RequestContext, getAllReq: GetAllReq): Unit = {
-    settings.storage.getAll(getAllReq.limit) match {
+    settings.storage.getAll(getAllReq.limit).map(Record.sort(_, getAllReq.sortby))  match {
       case Success(records) =>
         ctx.complete(GetAllResp(isSuccess = true, records = records.map(Resp.convRec), error = None))
       case Failure(exception) =>
@@ -69,7 +72,9 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
         ctx.complete(ModifyResp(isSuccess = false, error = Some(exception.getMessage)))
     }
   }
+}
 
+object RequestHandler extends carads.Logging {
   def logException(exception: Throwable, jsonReq: String) = {
     val stackTrace = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(exception)
     log.error(
