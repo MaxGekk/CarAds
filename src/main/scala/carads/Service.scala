@@ -12,7 +12,11 @@ import scala.concurrent.duration._
 import concurrent.{Await, Future}
 import akka.actor.SupervisorStrategy.Restart
 import akka.routing.{DefaultResizer, SmallestMailboxPool}
+import carads.backend.DynamoDb
 import carads.frontend.{RequestHandler, Settings}
+import com.amazonaws.auth.{AWSStaticCredentialsProvider, BasicAWSCredentials}
+import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -21,6 +25,20 @@ class Service(config: Config) extends Logging {
   val BIND_TIMEOUT = 1 minute
   var actualPort: Option[Int] = None
 
+  def configure: Settings = {
+    val storage = new DynamoDb {
+      val tableName = "carads"
+      val credentials = new BasicAWSCredentials("Fake", "Fake");
+      val client = AmazonDynamoDBClientBuilder.standard().
+        withCredentials(new AWSStaticCredentialsProvider(credentials)).
+        withEndpointConfiguration(new EndpointConfiguration(
+          "http://localhost:8000", "local")
+        ).
+        build()
+    }
+    Settings(storage)
+  }
+
   def start(): ActorSystem = {
     implicit val system = ActorSystem("CarAds")
 
@@ -28,7 +46,7 @@ class Service(config: Config) extends Logging {
       props = SmallestMailboxPool(WORKERS_AMOUNT).
         withSupervisorStrategy(OneForOneStrategy(-1, Duration.Inf) { case _ => Restart }).
         withResizer(DefaultResizer(lowerBound = WORKERS_AMOUNT, upperBound = 2 * WORKERS_AMOUNT)).
-        props(Props(classOf[RequestHandler], Settings())),
+        props(Props(classOf[RequestHandler], configure)),
       name = "request-handler"
     )
 
