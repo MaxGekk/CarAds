@@ -2,11 +2,9 @@ package carads.frontend
 
 import java.text.SimpleDateFormat
 import java.util.Date
-
 import carads.backend.{Diesel, Gasoline, Record}
-
 import scala.collection.mutable
-import scala.util.{Success, Try}
+import scala.util.Try
 
 case class PutReq(
                 id: Int,
@@ -35,6 +33,15 @@ case class PutReq(
   }
 }
 
+case class RespRecord(
+                       id: Int,
+                       title: String,
+                       fuel: String,
+                       price: Int,
+                       `new`: Boolean,
+                       mileage: Option[Int],
+                       registration: Option[String]
+                     )
 case class PutResp(
                     isSuccess: Boolean,
                     error: Option[String]
@@ -44,7 +51,7 @@ case class GetReq(id: Int) { var jsonReq: String = "Unknown" }
 case class GetResp(
                   isSuccess: Boolean,
                   error: Option[String],
-                  record: Option[Record]
+                  record: Option[RespRecord]
                   )
 
 case class DelReq(id: Int) { var jsonReq: String = "Unknown" }
@@ -57,7 +64,7 @@ case class GetAllReq(limit: Int) { var jsonReq: String = "Unknown" }
 case class GetAllResp(
                     isSuccess: Boolean,
                     error: Option[String],
-                    records: List[Record]
+                    records: List[RespRecord]
                   )
 
 case class ModifyReq(
@@ -114,5 +121,17 @@ object Req {
   val pattern = new SimpleDateFormat("yyyy-MM-dd")
   def str2Date(str: String): Date = {
     pattern.parse(str)
+  }
+}
+
+object Resp {
+  def date2Str(date: Date): String = {
+    Req.pattern.format(date)
+  }
+  def convRec(record: Record): RespRecord = {
+    RespRecord(
+      record.id, record.title, record.fuel.toString, record.price,
+      record.`new`, record.mileage, record.registration.map(date2Str)
+    )
   }
 }

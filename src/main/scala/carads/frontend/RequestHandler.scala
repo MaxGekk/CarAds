@@ -13,7 +13,7 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
   override def handleGet(ctx: RequestContext, getReq: GetReq): Unit = {
     settings.storage.get(getReq.id) match {
       case Success(rec) =>
-        ctx.complete(GetResp(isSuccess = true, record = Some(rec), error = None))
+        ctx.complete(GetResp(isSuccess = true, record = Some(Resp.convRec(rec)), error = None))
       case Failure(exception) =>
         logException(exception, getReq.jsonReq)
         ctx.complete(GetResp(isSuccess = false, error = Some(exception.getMessage), record = None))
@@ -48,7 +48,7 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
   override def handleGetAll(ctx: RequestContext, getAllReq: GetAllReq): Unit = {
     settings.storage.getAll(getAllReq.limit) match {
       case Success(records) =>
-        ctx.complete(GetAllResp(isSuccess = true, records = records, error = None))
+        ctx.complete(GetAllResp(isSuccess = true, records = records.map(Resp.convRec), error = None))
       case Failure(exception) =>
         logException(exception, getAllReq.jsonReq)
         ctx.complete(GetAllResp(isSuccess = false, error = Some(exception.getMessage), records = List()))
