@@ -1,8 +1,6 @@
 package carads
 
 import java.text.SimpleDateFormat
-import java.util.{Calendar, GregorianCalendar}
-
 import carads.backend._
 import carads.frontend._
 import com.typesafe.config.ConfigFactory
