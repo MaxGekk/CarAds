@@ -1,5 +1,11 @@
 # CarAds
-CardAds expose REST API for put, get, remove and modify of car advertisements.
+CardAds allows to put car advertisements to a persisitent storage and to get the ads back via REST API. To run it with default settings (on localhost:8080 with local dynamo db):
+```
+$ sbt run 'carads.Service'
+```
+All other settings are in application.conf
+
+## Quick start
 ```
 # Puts new ad
 $ curl -X POST -H "Content-Type: application/json"\
@@ -54,4 +60,4 @@ $ curl -X POST -H "Content-Type: application/json"\
 # Delete an ad
 $ curl -X POST -H "Content-Type: application/json" http://localhost:8080/delete -d '{"id": 13}'
 >>> {"isSuccess":true}
-```      
+```
