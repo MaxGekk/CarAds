@@ -29,7 +29,7 @@ case class PutReq(
       }}
     } yield Record(id, title, parsedFuel, price, `new`, mileage, parsedReg)
 
-    result
+    result map (_.check)
   }
 }
 

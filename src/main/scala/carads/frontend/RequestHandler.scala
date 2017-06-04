@@ -80,7 +80,7 @@ class RequestHandler(settings: Settings) extends HttpServiceActor with Routes {
 object RequestHandler extends carads.Logging {
   def logException(exception: Throwable, jsonReq: String) = {
     val stackTrace = org.apache.commons.lang.exception.ExceptionUtils.getStackTrace(exception)
-    log.error(
+    log.warn(
       s"""Failed due to: ${exception.getMessage}:
          | === JSON Request ===
          | $jsonReq

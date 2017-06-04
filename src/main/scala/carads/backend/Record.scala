@@ -21,7 +21,17 @@ case class Diesel() extends Fuel {
 }
 
 case class Record(id: Int, title: String, fuel: Fuel, price: Int, `new`: Boolean,
-                  mileage: Option[Int], registration: Option[Date])
+                  mileage: Option[Int], registration: Option[Date]) {
+  def check: Record = {
+    this match {
+      case Record(_, _, _, _, true, mileage, reg) if mileage.isDefined || reg.isDefined =>
+        throw new IllegalArgumentException("New car shouldn't have the mileage and first registration")
+      case Record(_, _, _, _, false, None, _) | Record(_, _, _, _, false, _, None) =>
+        throw new IllegalArgumentException("Old car must have the mileage and first registration")
+      case _ => this
+    }
+  }
+}
 
 object Record {
   def sort(records: List[Record], sortby: Option[String]): List[Record] = {
