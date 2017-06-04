@@ -1,7 +1,7 @@
 package carads
 
 import java.text.SimpleDateFormat
-import java.util.{Calendar, GregorianCalendar}
+import java.util.GregorianCalendar
 
 import carads.backend._
 import carads.frontend._
@@ -18,15 +18,15 @@ import spray.httpx.Json4sJacksonSupport
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class GetTests extends FreeSpec with Matchers with ScalaFutures with Json4sJacksonSupport {
+class DeleteTests extends FreeSpec with Matchers with ScalaFutures with Json4sJacksonSupport {
   override implicit def json4sJacksonFormats: Formats = DefaultFormats.withBigDecimal
 
   val format = new SimpleDateFormat("yyyy-MM-dd")
   val config = ConfigFactory.load()
   val storage = {
     val s = new MemStorage()
-    s.put(Record(1, "Old Niva", Gasoline(), 8000, false, Some(80000), Some(format.parse("1981-01-19"))))
-    s.put(Record(2, "Audi", Gasoline(), 18000, false, Some(60000), Some(format.parse("2009-01-19"))))
+    s.put(Record(1, "Old Niva", Gasoline(), 8000, false, Some(80000), Some(format.parse("1981-2-11"))))
+    s.put(Record(2, "Audi", Gasoline(), 18000, false, Some(60000), Some(format.parse("2009-1-11"))))
     s.put(Record(3, "Freelander", Diesel(), 50000, true, None, None))
 
     s
@@ -34,15 +34,15 @@ class GetTests extends FreeSpec with Matchers with ScalaFutures with Json4sJacks
   val settings = Settings(storage)
   val service = new Service(config, settings)
 
-  class Fixture(val pipeline: HttpRequest => Future[GetResp]) {
+  class Fixture(val pipeline: HttpRequest => Future[DelResp]) {
     val reqTimeout = Timeout(2.seconds)
-    def send(request: GetReq): Future[GetResp] =
-      pipeline(Post(s"http://localhost:${service.actualPort.get}/get", request))
+    def send(request: DelReq): Future[DelResp] =
+      pipeline(Post(s"http://localhost:${service.actualPort.get}/delete", request))
   }
 
   def withFixture(testCode: Fixture => Any): Unit = {
     implicit val system = service.start()
-    val pipeline: HttpRequest => Future[GetResp] = sendReceive ~> unmarshal[GetResp]
+    val pipeline: HttpRequest => Future[DelResp] = sendReceive ~> unmarshal[DelResp]
     try {
       testCode(new Fixture(pipeline))
     }
@@ -51,36 +51,21 @@ class GetTests extends FreeSpec with Matchers with ScalaFutures with Json4sJacks
     }
   }
 
-  "Get an ad with" - {
+  "Delete an ad with" - {
     " new car" in withFixture { fixture => import fixture._
-      val request = GetReq(3)
+      val request = DelReq(3)
 
       whenReady(send(request), reqTimeout) { resp =>
         resp.isSuccess shouldBe true
         resp.error shouldBe None
-        resp.record shouldBe Some(
-          RespRecord(3, "Freelander", "Diesel", 50000, true, None, None)
-        )
       }
     }
     " old car" in withFixture { fixture => import fixture._
-      val request = GetReq(1)
+      val request = DelReq(1)
 
       whenReady(send(request), reqTimeout) { resp =>
         resp.isSuccess shouldBe true
         resp.error shouldBe None
-        resp.record shouldBe Some(
-          RespRecord(1, "Old Niva", "Gasoline", 8000, false, Some(80000), Some("1981-01-19"))
-        )
-      }
-    }
-  }
-  "Get wrong ads" - {
-    " - not existing" in withFixture { fixture => import fixture._
-      val request = GetReq(100)
-
-      whenReady(send(request), reqTimeout) { resp =>
-        resp.isSuccess shouldBe false
       }
     }
   }

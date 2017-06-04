@@ -1,5 +1,8 @@
 package carads
 
+import java.text.SimpleDateFormat
+import java.util.GregorianCalendar
+
 import carads.backend._
 import carads.frontend._
 import com.typesafe.config.ConfigFactory
@@ -19,6 +22,7 @@ import scala.util.Success
 class PutTests extends FreeSpec with Matchers with ScalaFutures with Json4sJacksonSupport {
   override implicit def json4sJacksonFormats: Formats = DefaultFormats.withBigDecimal
 
+  val format = new SimpleDateFormat("yyyy-MM-dd")
   val config = ConfigFactory.load()
   val storage = new MemStorage()
   val settings = Settings(storage)
@@ -74,7 +78,7 @@ class PutTests extends FreeSpec with Matchers with ScalaFutures with Json4sJacks
         resp.isSuccess shouldBe true
         resp.error shouldBe None
         storage.get(2) shouldBe Success(
-          Record(2, "Audi", Diesel(), 20000, false, Some(120000), Some(Req.str2Date("2009-10-06")))
+          Record(2, "Audi", Diesel(), 20000, false, Some(120000), Some(format.parse("2009-10-6")))
         )
       }
     }

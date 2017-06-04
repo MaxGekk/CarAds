@@ -15,11 +15,11 @@ trait Storage {
 }
 
 object Storage {
-  val pattern = new SimpleDateFormat("yyyy-MM-dd")
+  val pattern = "yyyy-MM-dd"
   def date2Str(date: Date): String = {
-    pattern.format(date)
+    new SimpleDateFormat(pattern).format(date)
   }
   def str2Date(str: String): Date = {
-    pattern.parse(str)
+    new SimpleDateFormat(pattern).parse(str)
   }
 }

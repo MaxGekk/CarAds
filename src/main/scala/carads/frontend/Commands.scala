@@ -118,15 +118,14 @@ case class ModifyResp(
                   )
 
 object Req {
-  val pattern = new SimpleDateFormat("yyyy-MM-dd")
   def str2Date(str: String): Date = {
-    pattern.parse(str)
+    new SimpleDateFormat("yyyy-MM-dd").parse(str)
   }
 }
 
 object Resp {
   def date2Str(date: Date): String = {
-    Req.pattern.format(date)
+    new SimpleDateFormat("yyyy-MM-dd").format(date)
   }
   def convRec(record: Record): RespRecord = {
     RespRecord(
