@@ -14,6 +14,7 @@ val scalajV = "2.3.0"
 val sprayJsonV = "1.3.2"
 val commonsV = "2.6"
 val json4sV = "3.2.11"
+val scalaTestV = "2.2.4"
 
 libraryDependencies ++= Seq(
   "org.slf4j" % "log4j-over-slf4j" % slf4jV,
@@ -31,5 +32,6 @@ libraryDependencies ++= Seq(
   "org.scalaj" %% "scalaj-http" % scalajV,
   "io.spray" %%  "spray-json" % sprayJsonV,
   "commons-lang" % "commons-lang" % commonsV,
-  "org.json4s" %% "json4s-jackson" % json4sV
+  "org.json4s" %% "json4s-jackson" % json4sV,
+  "org.scalatest" %% "scalatest" % scalaTestV % "test"
 )
